@@ -1,81 +1,31 @@
 # Spotify 2006
 
-A one-file front-end tribute to the 2006 Spotify era: chrome UI, dark panels, dense library browsing, mix CDs, radio, and a DJ console.
+A hackathon rebuild of Spotify as if it launched in 2006: Y2K/MySpace/Frutiger Aero design language wrapped around full modern functionality (real search, playback, playlists, AI recs). No simulated technical limits from the era — only the look and feel.
 
-## What it is
+## Where the app lives
 
-This project is a static HTML, CSS, and JavaScript app built to feel like an old desktop music client. There is no build step and no framework. The whole app lives in:
+The active app is in [react/](react/) (Vite + React + react-router-dom + zustand). Run it via the `spotify-2006-react` config in `.claude/launch.json`, or:
 
-- [index.html](index.html)
-- [style.css](style.css)
-- [app.js](app.js)
+```
+cd react
+npm install
+npm run dev
+```
 
-## How it is made
+- `react/src/core/` — shared logic (store, iTunes Search API client, curated data, persistence), exposed only via hooks. See [react/src/themes/README.md](react/src/themes/README.md) for the contract theme authors build against.
+- `react/src/landing/` — the `/` landing page (three.js disco-ball backdrop + vinyl-record theme picker).
+- `react/src/themes/chrome/` — "Chrome & Acid" theme at `/chrome`, the full-featured build (3-column desktop shell, DJ console, dialogs, mobile drawers).
+- `react/src/themes/aero/`, `react/src/themes/scrapbook/` — Frutiger Aero and MySpace Scrapbook theme stubs at `/aero` and `/scrapbook`.
 
-The layout is a 3-column desktop shell:
+## Docs
 
-- left: library explorer tree
-- center: the main content area
-- right: the DJ console
-- footer: player controls, LCD now-playing strip, seek and volume
+- [docs/DESIGN-2006.md](docs/DESIGN-2006.md) — 2004–2008 desktop UI research and design audit.
+- [docs/BUILD-PLAN.md](docs/BUILD-PLAN.md) — the React conversion plan.
 
-The styling leans hard into a 2006 UI look: gradient chrome, LCD green text, old-school buttons, sharp borders, and fixed desktop proportions. The app also keeps a few bits of state in `localStorage`, including:
+## Assets
 
-- recently played tracks
-- mix CDs
-- search/cache data
-- tree open state
-- column widths
-- visitor counter
+- `spotifylogo.png` — source logo art (favicon and reference asset; `react/public/favicon.png` is a copy of it).
 
 ## iTunes API
 
-Track data comes from the iTunes Search API.
-
-The app queries endpoints like:
-
-```text
-https://itunes.apple.com/search?media=music&entity=song&limit=25&term=...
-```
-
-Because this is a static client, the code uses JSONP instead of `fetch()` for the iTunes requests. In [app.js](app.js), the `jsonp()` helper injects a `<script>` tag, appends a temporary callback name, and resolves when iTunes returns the payload.
-
-The raw API results are normalized into a simpler track shape with:
-
-- `id`
-- `name`
-- `artist`
-- `album`
-- `art`
-- `preview`
-- `ms`
-- `genre`
-
-Curated sections like charts, staff picks, hidden gems, and playlists are built by searching the iTunes API with seeded artist/song strings and caching the results for 6 hours.
-
-## Album covers
-
-Album art is fetched from the iTunes `artworkUrl100` field. In [app.js](app.js), the URL is upgraded from the 100px version to 300px by replacing `100x100` with `300x300` during normalization.
-
-That art is then rendered in a few places:
-
-- the now-playing image in the footer player
-- track tables throughout the app
-- album cover grids in the library view
-- featured artist cards and curated sections
-
-The player bar updates the active cover by assigning the art URL to the `#playerArt` image element and unhiding it when a track has artwork. Album grids and track rows reuse the same normalized `art` field as regular `<img>` sources.
-
-## Audio playback
-
-Playback uses the 30-second preview URLs returned by iTunes. When a track starts, the app updates the LCD text, now-playing art, recent-history state, and the DJ console session log.
-
-## Run it
-
-Open `index.html` directly in a browser, or serve the folder with any static server if you prefer.
-
-## Notes
-
-- The app is intentionally desktop-first.
-- It is designed to feel period-correct, not modern-minimal.
-- Search results and curated sections depend on live iTunes responses.
+Track data comes from the iTunes Search API (`https://itunes.apple.com/search`), no key required.

@@ -1,0 +1,122 @@
+.theme-scrapbook-stub {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: #FF9CC5;
+  background-image:
+    radial-gradient(circle, rgba(255,255,255,0.5) 2px, transparent 2px);
+  background-size: 22px 22px;
+  font-family: "Comic Sans MS", "Trebuchet MS", cursive;
+}
+
+.scrap-tape {
+  position: absolute;
+  width: 90px;
+  height: 30px;
+  background: rgba(255,255,200,0.6);
+  border: 1px dashed rgba(0,0,0,0.15);
+  color: #6A6252;
+  font-size: 9px;
+  letter-spacing: 1px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+}
+.scrap-tape-l { top: 40px; left: 8%; transform: rotate(-8deg); }
+.scrap-tape-r { top: 30px; right: 10%; transform: rotate(6deg); }
+
+.scrap-stub-card {
+  max-width: 480px;
+  width: 100%;
+  background: #FDFBF4;
+  border: 1px solid #B8B2A0;
+  box-shadow: 5px 6px 0 rgba(0,0,0,0.25);
+  padding: 26px 28px 32px;
+  text-align: center;
+  color: #111;
+  transform: rotate(-1deg);
+}
+
+.scrap-stub-banner {
+  background: #FFE347;
+  border: 2px dashed #E85A9A;
+  color: #C4267A;
+  font-weight: bold;
+  font-size: 13px;
+  padding: 6px;
+  margin-bottom: 16px;
+  animation: scrapblink 1.2s infinite;
+}
+@keyframes scrapblink { 50% { opacity: 0.4; } }
+
+.scrap-stub-card h1 {
+  margin: 0 0 2px;
+  font-size: 30px;
+  color: #E8399E;
+  text-shadow: 2px 2px 0 #FFE347, -1px -1px 0 #6FD1E0;
+}
+
+.scrap-stub-credit {
+  margin: 0 0 16px;
+  font-size: 13px;
+  color: #C4267A;
+  font-style: italic;
+}
+
+.scrap-stub-note {
+  font-size: 14px;
+  line-height: 1.6;
+  color: #333;
+}
+
+.scrap-stub-note code {
+  background: #FFF3A0;
+  border: 1px solid #D8B830;
+  border-radius: 3px;
+  padding: 1px 5px;
+  font-family: monospace;
+}
+
+.scrap-stub-now-playing {
+  margin-top: 18px;
+  background: #FFF3A0;
+  border: 2px dashed #E8399E;
+  padding: 12px 14px;
+}
+
+.scrap-stub-label {
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #8A6A20;
+  margin-bottom: 4px;
+}
+
+.scrap-stub-track { font-weight: bold; font-size: 14px; color: #C4267A; }
+.scrap-stub-track.dim { color: #B8A870; font-weight: normal; font-style: italic; }
+
+.scrap-stub-btn {
+  margin-top: 10px;
+  background: #6FD1E0;
+  border: 2px solid #2E9FB8;
+  border-radius: 20px;
+  color: #0D3A4A;
+  font-family: inherit;
+  font-weight: bold;
+  font-size: 13px;
+  padding: 6px 18px;
+  cursor: pointer;
+}
+
+.scrap-stub-back {
+  display: inline-block;
+  margin-top: 20px;
+  font-size: 13px;
+  color: #C4267A;
+  text-decoration: none;
+}
+.scrap-stub-back:hover { text-decoration: underline; }
