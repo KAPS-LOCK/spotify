@@ -12,6 +12,7 @@
 
   <!-- ===== chrome titlebar ===== -->
   <div class="titlebar">
+    <button id="navToggle" class="nav-toggle" aria-label="Menu">&#9776;</button>
     <div class="logo">
       <span class="logo-disc">&#9678;</span>
       SPOTIFY<span class="tm">&trade;</span><span class="ver">2006</span>
@@ -32,29 +33,77 @@
     </div>
   </div>
 
-  <!-- ===== main frame ===== -->
-  <div class="frame">
+  <!-- ===== 3-column frame: explorer | content | dj console ===== -->
+  <div class="frame" id="frame">
 
-    <aside class="sidebar">
-      <div class="side-section">
-        <div class="side-head">MENU</div>
-        <button class="side-link active" data-nav="home">&#9654; HOME</button>
-        <button class="side-link" data-nav="search">&#9654; SEARCH RESULTS</button>
-        <button class="side-link" data-nav="mixcds">&#9654; MY MIX CDs</button>
-      </div>
-      <div class="side-section">
-        <div class="side-head">MIX CDs <button id="newMixBtn" class="mini-btn" title="Burn a new Mix CD">+ BURN</button></div>
-        <div id="sideMixList" class="side-mixes"></div>
-      </div>
+    <aside class="sidebar" id="sidebar">
+      <div class="side-caption">LIBRARY EXPLORER</div>
+      <div id="navTree" class="nav-tree"></div>
       <div class="side-fill"></div>
       <div class="hit-counter">
         <div class="hc-label">you are visitor no.</div>
         <div class="hc-digits" id="hitCounter">000000</div>
       </div>
-      <div class="side-badge">best viewed in<br>1024 &times; 768</div>
+      <div class="side-badge">best viewed in<br>1024 &times; 768<br>spotify build 0.91 beta</div>
     </aside>
 
+    <div class="splitter" data-side="l" title="drag to resize"></div>
+
     <main id="view" class="view"></main>
+
+    <div class="splitter" data-side="r" title="drag to resize"></div>
+
+    <aside class="console" id="console">
+      <div class="con-head">
+        <div class="con-avatar">&#9835;</div>
+        <div class="con-id">
+          <div class="con-name">DJ_Sp1n</div>
+          <div class="con-status"><span class="buddy-dot"></span> <span id="djStatus">&#9835; listening...</span></div>
+        </div>
+        <button id="conClose" class="con-close" aria-label="Close console">&times;</button>
+      </div>
+
+      <div class="con-body">
+        <div class="con-sec">
+          <div class="con-cap">SESSION LOG <span class="cap-note" id="syncNote">&middot; synced --:--</span></div>
+          <div class="dj-feed" id="djFeed"></div>
+        </div>
+
+        <div class="con-mid" id="conMid">
+          <div class="con-sec">
+            <div class="con-cap">QUICK MIXES</div>
+            <div class="quick-grid">
+              <button class="btn-row" data-quick="gym">WORKOUT</button>
+              <button class="btn-row" data-quick="road">ROAD TRIP</button>
+              <button class="btn-row" data-quick="late">LATE NIGHT</button>
+              <button class="btn-row" data-quick="party">PARTY</button>
+              <button class="btn-row" data-quick="chill">CHILL</button>
+            </div>
+            <button class="build-mix" id="buildMixBtn">&#9889; BUILD MIX <span>from this session</span></button>
+          </div>
+
+          <div class="con-sec">
+            <div class="con-cap">RECENTLY FOUND <span class="cap-note">&middot; this session</span></div>
+            <div id="djFound" class="found-list"><div class="con-empty">nothing yet. he's listening.</div></div>
+          </div>
+
+          <div class="con-sec">
+            <div class="con-cap">HOT RIGHT NOW <span class="cap-note">&middot; updated 2 mins ago</span></div>
+            <div id="djTrend" class="trend-list"><div class="con-empty">checking the wire...</div></div>
+          </div>
+        </div>
+
+        <div class="con-chat" id="conChat" hidden>
+          <div class="im-log" id="conLog"></div>
+          <form class="im-inputrow" id="imForm" autocomplete="off">
+            <input type="text" id="imInput" placeholder="throw me a mood..." spellcheck="false">
+            <button type="submit" class="btn btn-aero">Send</button>
+          </form>
+        </div>
+      </div>
+
+      <button class="talk-btn" id="talkBtn">&#9993; talk to dj &raquo;</button>
+    </aside>
   </div>
 
   <!-- ===== player bar ===== -->
@@ -87,13 +136,13 @@
   </footer>
 
   <div class="statusbar">
-    <span>&copy; 2006 Spotify AB. All rights reserved. Do not steal music &mdash; that's our job now.</span>
+    <span>&copy; 2006 Spotify AB &middot; database: 24,019,331 songs &middot; build 0.91 beta</span>
     <span id="statusMsg">ready.</span>
   </div>
 </div>
 
-<!-- ===== AI buddy IM window (scrapbook zone) ===== -->
-<button id="buddyToggle" class="buddy-toggle" title="DJ_Sp1n is online — IM me!!" aria-label="Chat with DJ_Sp1n">
+<!-- mobile-only: vinyl toggle + speech bubble for the console -->
+<button id="buddyToggle" class="buddy-toggle" title="DJ_Sp1n is online" aria-label="Open DJ console">
   <span class="vinyl">
     <span class="vinyl-label">DJ</span>
   </span>
@@ -101,27 +150,7 @@
 </button>
 <button id="buddyBubble" class="buddy-bubble" hidden></button>
 
-<div id="buddy" class="im-window" hidden>
-  <div class="im-titlebar">
-    <span>&#9829; IM with DJ_Sp1n &#9829;</span>
-    <button id="buddyClose" class="im-close">&times;</button>
-  </div>
-  <div class="im-profile">
-    <div class="im-avatar">&#9835;</div>
-    <div>
-      <div class="im-name">DJ_Sp1n</div>
-      <div class="im-status">&laquo; resident dj. here since day one. &raquo;</div>
-    </div>
-  </div>
-  <div class="im-log" id="imLog"></div>
-  <form class="im-inputrow" id="imForm" autocomplete="off">
-    <input type="text" id="imInput" placeholder="throw me a mood..." spellcheck="false">
-    <button type="submit" class="btn btn-aero">Send</button>
-  </form>
-  <div class="im-sticky">try: "emo", "party", "crush", "gym", "chill", "road trip"... or ask him who he is &hearts;</div>
-</div>
-
-<!-- burn dialog -->
+<!-- burn dialog (aero cameo) -->
 <div id="burnDialog" class="dialog-backdrop" hidden>
   <div class="dialog">
     <div class="dialog-title">Burn a new Mix CD</div>
