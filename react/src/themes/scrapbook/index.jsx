@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useStatusBar } from '../../core/hooks';
 import { LoadingScreen } from './LoadingScreen';
 import { HeaderBar } from './HeaderBar';
-import { IpodBar } from './IpodBar';
 import { Sidebar } from './Sidebar';
 import { QueuePanel } from './QueuePanel';
 import { Home, Search, Library } from './views';
@@ -25,7 +24,6 @@ export default function ThemeApp() {
       <div className="noise" />
 
       <HeaderBar />
-      <IpodBar />
 
       <button className="mobile-toggle-sidebar" onClick={() => { setSidebarOpen((o) => !o); setQueueOpen(false); }}>MENU &#9776;</button>
       <button className="mobile-toggle-queue" onClick={() => { setQueueOpen((o) => !o); setSidebarOpen(false); }}>QUEUE &#9835;</button>

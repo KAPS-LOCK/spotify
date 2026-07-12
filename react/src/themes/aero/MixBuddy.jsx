@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { useDJ, usePlayer, useLibrary } from '../../core/hooks';
+import { useDJ } from '../../core/hooks';
+import { askBuddy } from './buddyAI';
 
 const QUICK = [
   ['gym', '🏋️ gym'], ['road', '🚗 road trip'], ['late', '🌙 late night'],
@@ -21,44 +22,46 @@ function FeedEntry({ entry }){
   );
 }
 
-function ChatMsg({ msg }){
-  const { play } = usePlayer();
-  const { burnMix } = useLibrary();
-  const [burned, setBurned] = useState(false);
+let aiMsgId = 0;
+
+function AiMsg({ msg }){
   return (
     <div className={`bmsg ${msg.who === 'me' ? 'me' : 'bot'}`}>
-      {msg.lines.map((l, i) => <span key={i}>{l}<br /></span>)}
-      {msg.tracks && (
-        <div className="bmsg-tracks">
-          {msg.tracks.slice(0, 4).map((t, i) => (
-            <button key={i} className="bmsg-track-btn" onClick={() => play(msg.tracks, i)}>♪ {t.name} — {t.artist}</button>
-          ))}
-          <button
-            className="bmsg-track-btn" disabled={burned}
-            onClick={() => { burnMix(msg.mixName, msg.tracks); setBurned(true); }}
-          >{burned ? '✓ burned to CD' : '● burn to CD'}</button>
-        </div>
-      )}
+      {msg.text.split('\n').map((l, i) => <span key={i}>{l}<br /></span>)}
     </div>
   );
 }
 
 export default function MixBuddy(){
-  const { feed, status, chatLog, busy, sendChat, quickMix, buildMix } = useDJ();
+  const { feed, status, busy, quickMix, buildMix } = useDJ();
   const [open, setOpen] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
   const [input, setInput] = useState('');
+  const [aiChat, setAiChat] = useState([
+    { id: aiMsgId++, who: 'DJ_Sp1n', text: "yo, it's DJ_Sp1n. throw me a mood, an artist, whatever's on your mind." },
+  ]);
+  const [aiBusy, setAiBusy] = useState(false);
   const feedRef = useRef(null);
   const logRef = useRef(null);
 
   useEffect(() => { if(feedRef.current) feedRef.current.scrollTop = 999999; }, [feed, open]);
-  useEffect(() => { if(logRef.current) logRef.current.scrollTop = 999999; }, [chatLog, open, chatOpen]);
+  useEffect(() => { if(logRef.current) logRef.current.scrollTop = 999999; }, [aiChat, aiBusy, open, chatOpen]);
 
-  function send(){
+  async function send(){
     const val = input.trim();
-    if(!val) return;
+    if(!val || aiBusy) return;
     setInput('');
-    sendChat(val);
+    const history = aiChat;
+    setAiChat((c) => [...c, { id: aiMsgId++, who: 'me', text: val }]);
+    setAiBusy(true);
+    try {
+      const reply = await askBuddy(val, history);
+      setAiChat((c) => [...c, { id: aiMsgId++, who: 'DJ_Sp1n', text: reply }]);
+    } catch {
+      setAiChat((c) => [...c, { id: aiMsgId++, who: 'DJ_Sp1n', text: "modem's down... try again in a sec." }]);
+    } finally {
+      setAiBusy(false);
+    }
   }
 
   return (
@@ -94,7 +97,8 @@ export default function MixBuddy(){
 
         {chatOpen && (
           <div className="buddy-msgs" ref={logRef}>
-            {chatLog.map(m => <ChatMsg key={m.id} msg={m} />)}
+            {aiChat.map(m => <AiMsg key={m.id} msg={m} />)}
+            {aiBusy && <div className="bmsg bot typing">...</div>}
           </div>
         )}
 
@@ -102,11 +106,12 @@ export default function MixBuddy(){
           <input
             type="text" placeholder="throw me a mood..."
             value={input}
+            disabled={aiBusy}
             onChange={e => setInput(e.target.value)}
             onFocus={() => setChatOpen(true)}
             onKeyDown={e => { if(e.key === 'Enter') send(); }}
           />
-          <button onClick={() => { setChatOpen(true); send(); }}>send</button>
+          <button disabled={aiBusy} onClick={() => { setChatOpen(true); send(); }}>send</button>
         </div>
       </div>
     </>

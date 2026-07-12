@@ -12,7 +12,7 @@ dist
 dist-ssr
 *.local
 .env
-.env.*
+src/themes/aero/.env
 
 # Editor directories and files
 .vscode/*
