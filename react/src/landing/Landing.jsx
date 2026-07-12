@@ -1,11 +1,11 @@
-import { useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useThemeTransition } from './ThemeTransition';
 import './landing.css';
 
 const VIBES = [
-  { key: 'chrome', to: '/chrome', name: 'Chrome & Acid', sub: 'Metallic energy', accent: 'oklch(0.74 0.19 152)', glow: 'oklch(0.74 0.19 152 / 0.65)', art: '/vinyl-chrome.png' },
-  { key: 'aero', to: '/aero', name: 'Frutiger Aero', sub: 'Glossy water & glass', accent: 'oklch(0.74 0.19 224)', glow: 'oklch(0.74 0.19 224 / 0.65)', art: '/vinyl-aero.png', artZoom: 140 },
-  { key: 'scrap', to: '/scrapbook', name: 'MySpace Scrapbook', sub: 'Glitter & collage', accent: 'oklch(0.74 0.19 340)', glow: 'oklch(0.74 0.19 340 / 0.65)', art: '/vinyl-scrapbook.png' },
+  { key: 'chrome', to: '/chrome', name: 'Chrome & Acid', sub: 'Metallic energy', accent: 'oklch(0.74 0.19 152)', art: '/vinyl-chrome.png' },
+  { key: 'aero', to: '/aero', name: 'Frutiger Aero', sub: 'Glossy water & glass', accent: 'oklch(0.74 0.19 224)', art: '/vinyl-aero.png', artZoom: 140 },
+  { key: 'scrap', to: '/scrapbook', name: 'MySpace Scrapbook', sub: 'Glitter & collage', accent: 'oklch(0.74 0.19 340)', art: '/vinyl-scrapbook.png' },
 ];
 
 const SPARKLES = [
@@ -30,22 +30,13 @@ function useStageScale() {
 
 export default function Landing() {
   const scale = useStageScale();
-  const navigate = useNavigate();
-  const [spinKey, setSpinKey] = useState(null);
-  const [overlay, setOverlay] = useState(null);
-  const timers = useRef([]);
+  const startTransition = useThemeTransition();
+  const [locked, setLocked] = useState(false);
 
-  useEffect(() => () => timers.current.forEach(clearTimeout), []);
-
-  function playVibe(vibe) {
-    if (spinKey) return;
-    setSpinKey(vibe.key);
-    timers.current.push(setTimeout(() => {
-      setOverlay({ label: vibe.name.toUpperCase(), accent: vibe.accent });
-    }, 650));
-    timers.current.push(setTimeout(() => {
-      navigate(vibe.to);
-    }, 1750));
+  function playVibe(vibe, e) {
+    if (locked) return;
+    setLocked(true);
+    startTransition(vibe, e.currentTarget.getBoundingClientRect());
   }
 
   return (
@@ -70,7 +61,6 @@ export default function Landing() {
             <img src="/disco-ball.png" alt="Spotify disco ball" className="stage-ball-img" />
           </div>
         </div>
-        <div className="stage-ball-glow" aria-hidden="true" />
 
         <div className="stage-hero">
           <div className="stage-word">SPOTIFY</div>
@@ -79,14 +69,14 @@ export default function Landing() {
         </div>
 
         <div className="stage-vinyl-row">
-          {VIBES.map((vibe) => (
-            <div key={vibe.key} className="stage-vinyl">
+          {VIBES.map((vibe, i) => (
+            <div key={vibe.key} className="stage-vinyl" style={{ animationDelay: (0.25 + i * 0.11) + 's' }}>
               <div
-                className={'stage-disc' + (spinKey === vibe.key ? ' stage-disc-spin' : '')}
-                onClick={() => playVibe(vibe)}
+                className="stage-disc"
+                onClick={(e) => playVibe(vibe, e)}
                 role="button"
                 tabIndex={0}
-                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') playVibe(vibe); }}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') playVibe(vibe, e); }}
               >
                 {vibe.art ? (
                   <div className="stage-disc-art-wrap">
@@ -98,7 +88,7 @@ export default function Landing() {
                     />
                   </div>
                 ) : (
-                  <div className="stage-disc-label" style={{ background: vibe.accent, boxShadow: `0 0 22px ${vibe.glow}, inset 0 0 0 3px rgba(0,0,0,.35)` }}>
+                  <div className="stage-disc-label" style={{ background: vibe.accent, boxShadow: 'inset 0 0 0 3px rgba(0,0,0,.35)' }}>
                     <span className="stage-disc-bar stage-disc-bar-1" />
                     <span className="stage-disc-bar stage-disc-bar-2" />
                     <span className="stage-disc-bar stage-disc-bar-3" />
@@ -116,15 +106,6 @@ export default function Landing() {
         </div>
 
         <div className="stage-tagline">Three vibes. One club. Zero skips.</div>
-
-        {overlay && (
-          <div
-            className="stage-overlay"
-            style={{ background: `radial-gradient(circle at 50% 50%, ${overlay.accent}, #050505 72%)` }}
-          >
-            <div className="stage-overlay-label">ENTERING {overlay.label}</div>
-          </div>
-        )}
       </div>
     </div>
   );
