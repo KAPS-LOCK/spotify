@@ -30,6 +30,16 @@ export const FEATURED = {
   trackIndexes: [10, 0, 11, 2, 5],
 };
 
+export const MOODS = [
+  { text: 'bouncy', bg: '#F8C8DC' },
+  { text: 'crunk', bg: '#39FF14' },
+  { text: 'myspace famous', bg: '#7ec4e6' },
+  { text: "emo (it's a phase)", bg: '#FDF6EE' },
+  { text: 'jealous (jk)', bg: '#FF007F' },
+  { text: 'sugar rush', bg: '#F8C8DC' },
+  { text: 'top 8 drama', bg: '#7ec4e6' },
+];
+
 export const TYPING_PHRASES = [
   'music for everyone.',
   'streaming since 2006.',
