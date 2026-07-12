@@ -6,6 +6,7 @@ import {
 import { store, cachedTracks } from './persist';
 import { feedTime } from './fmt';
 import { MOODS, AMBIENT, EGGS, STATUS_IDLE, STATUS_PLAY, PROCESS_STEPS, TREND_SEED } from './data';
+import { djReply } from './groq';
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 let uid = 0;
@@ -412,30 +413,37 @@ export const useAppStore = create((set, get) => ({
   },
 
   sendChat: async (text) => {
-    const userMsg = { id: cuid(), who: 'me', lines: [text], cls: 'me' };
+    const userMsg = { id: cuid(), who: 'me', lines: [text], cls: 'me', time: feedTime() };
     set((s) => ({ chatLog: [...s.chatLog, userMsg] }));
 
     const egg = EGGS.find((e) => e.re.test(text));
     if (egg) {
       await sleep(700);
-      set((s) => ({ chatLog: [...s.chatLog, { id: cuid(), who: 'DJ_Sp1n', lines: egg.lines, cls: 'bot' }] }));
+      set((s) => ({ chatLog: [...s.chatLog, { id: cuid(), who: 'DJ_Sp1n', lines: egg.lines, cls: 'bot', time: feedTime() }] }));
       return;
     }
 
     const lower = text.toLowerCase();
     const mood = MOODS.find((m) => m.keys.some((k) => lower.includes(k)));
-    let reply, mixName, fetchPromise;
+    let mixName, fetchPromise;
     if (mood) {
-      reply = mood.reply;
       mixName = mood.name;
       fetchPromise = Promise.all(mood.terms.map((t) => searchTracks(t, 2).catch(() => [])))
         .then((r) => dedupe(r.flat()).slice(0, 8));
     } else {
-      reply = ['hm.', 'digging for that the old-fashioned way...'];
       mixName = text.slice(0, 24) + ' mix';
       fetchPromise = searchTracks(text, 8);
     }
-    set((s) => ({ chatLog: [...s.chatLog, { id: cuid(), who: 'DJ_Sp1n', lines: reply, cls: 'bot' }] }));
+
+    const history = get().chatLog
+      .filter((m) => m.who === 'me' || m.who === 'DJ_Sp1n')
+      .slice(-8)
+      .map((m) => ({ role: m.who === 'me' ? 'user' : 'assistant', content: m.lines.join(' ') }));
+    const fallback = mood ? mood.reply : ['hm.', 'digging for that the old-fashioned way...'];
+    const reply = await djReply(history, text)
+      .then((r) => (r ? r.split('\n').map((l) => l.trim()).filter(Boolean) : fallback))
+      .catch(() => fallback);
+    set((s) => ({ chatLog: [...s.chatLog, { id: cuid(), who: 'DJ_Sp1n', lines: reply, cls: 'bot', time: feedTime() }] }));
 
     const typingId = cuid();
     set((s) => ({ chatLog: [...s.chatLog, { id: typingId, who: 'DJ_Sp1n', lines: [PROCESS_STEPS[0]], cls: 'bot typing' }] }));
@@ -447,16 +455,25 @@ export const useAppStore = create((set, get) => ({
       const tracks = await fetchPromise;
       set((s) => ({ chatLog: s.chatLog.filter((m) => m.id !== typingId) }));
       if (!tracks.length) {
-        set((s) => ({ chatLog: [...s.chatLog, { id: cuid(), who: 'DJ_Sp1n', lines: ['crates came up empty.', 'try different words?'], cls: 'bot' }] }));
+        const emptyFallback = ['crates came up empty.', 'try different words?'];
+        const emptyReply = await djReply(history, '(the crate search for "' + text + '" came up empty. tell the user, in your voice, 1 line.)')
+          .then((r) => (r ? r.split('\n').map((l) => l.trim()).filter(Boolean) : emptyFallback))
+          .catch(() => emptyFallback);
+        set((s) => ({ chatLog: [...s.chatLog, { id: cuid(), who: 'DJ_Sp1n', lines: emptyReply, cls: 'bot', time: feedTime() }] }));
         return;
       }
+      const trackList = tracks.slice(0, 5).map((t) => t.name + ' by ' + t.artist).join(', ');
+      const revealFallback = ['got something.', 'trust me.'];
+      const revealReply = await djReply(history, '(you just pulled these for the mix: ' + trackList + '. tell the user you found it, in your voice, 1-2 lines. do not list the tracks back, they can already see them.)')
+        .then((r) => (r ? r.split('\n').map((l) => l.trim()).filter(Boolean) : revealFallback))
+        .catch(() => revealFallback);
       set((s) => ({ chatLog: [...s.chatLog, {
-        id: cuid(), who: 'DJ_Sp1n', lines: ['got something.', 'trust me.'], cls: 'bot', tracks, mixName,
+        id: cuid(), who: 'DJ_Sp1n', lines: revealReply, cls: 'bot', tracks, mixName, time: feedTime(),
       }] }));
       get().addFound(tracks.slice(0, 3));
     } catch {
       set((s) => ({ chatLog: s.chatLog.filter((m) => m.id !== typingId) }));
-      set((s) => ({ chatLog: [...s.chatLog, { id: cuid(), who: 'DJ_Sp1n', lines: ['modem dropped.', 'try again in a sec.'], cls: 'bot' }] }));
+      set((s) => ({ chatLog: [...s.chatLog, { id: cuid(), who: 'DJ_Sp1n', lines: ['modem dropped.', 'try again in a sec.'], cls: 'bot', time: feedTime() }] }));
     }
   },
 

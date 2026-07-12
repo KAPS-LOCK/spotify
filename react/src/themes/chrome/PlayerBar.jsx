@@ -35,6 +35,9 @@ export function PlayerBar() {
   } = usePlayer();
   const [seekVal, setSeekVal] = useState(0);
   const [seekDragging, setSeekDragging] = useState(false);
+  const [trackGlitch, setTrackGlitch] = useState(false);
+  const [playPulse, setPlayPulse] = useState(false);
+  const prevIdRef = useRef(current?.id);
 
   useEffect(() => {
     if (!seekDragging && isFinite(duration) && duration > 0) {
@@ -42,11 +45,24 @@ export function PlayerBar() {
     }
   }, [currentTime, duration, seekDragging]);
 
+  useEffect(() => {
+    if (current?.id !== prevIdRef.current) {
+      prevIdRef.current = current?.id;
+      setTrackGlitch(true);
+    }
+  }, [current?.id]);
+
+  function handleToggle() {
+    toggle();
+    setPlayPulse(true);
+    setTimeout(() => setPlayPulse(false), 350);
+  }
+
   const lcdText = current ? '♫ ' + current.name + ' — ' + current.artist + ' ' : 'SPOTIFY™ 2006 ··· insert coin to rock ··· search for a song to begin';
 
   return (
     <footer className="player">
-      <div className="lcd">
+      <div className={'lcd' + (trackGlitch ? ' lcd-glitch' : '')} onAnimationEnd={() => setTrackGlitch(false)}>
         <div className={'lcd-track' + (current ? ' scrolling' : '')}>
           <span>{lcdText}{current ? '··· ' + lcdText + '··· ' : ''}</span>
         </div>
@@ -59,7 +75,7 @@ export function PlayerBar() {
 
       <div className="transport">
         <button className="btn btn-chrome" title="Previous" onClick={prev}>&#9198;</button>
-        <button className="btn btn-play" title="Play/Pause" onClick={toggle}>{isPlaying ? '⏸' : '▶'}</button>
+        <button className={'btn btn-play' + (playPulse ? ' pulse' : '')} title="Play/Pause" onClick={handleToggle}>{isPlaying ? '⏸' : '▶'}</button>
         <button className="btn btn-chrome" title="Next" onClick={() => next(true)}>&#9197;</button>
         <button className={'btn btn-chrome btn-toggle' + (shuffle ? ' on' : '')} title="Shuffle" onClick={toggleShuffle}>SHFL</button>
         <button className={'btn btn-chrome btn-toggle' + (repeat ? ' on' : '')} title="Repeat queue" onClick={toggleRepeat}>RPT</button>

@@ -60,8 +60,27 @@ function useSplitter(frameRef) {
   }, [frameRef]);
 }
 
+function OdoCell({ children }) {
+  return <span className="odo" key={String(children)}>{children}</span>;
+}
+
 function isMobile() {
   return typeof window !== 'undefined' && window.matchMedia('(max-width: 900px)').matches;
+}
+
+function useBootSequence() {
+  const [booting, setBooting] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return false;
+    return !window.sessionStorage.getItem('sp06_booted');
+  });
+  useEffect(() => {
+    if (!booting) return;
+    window.sessionStorage.setItem('sp06_booted', '1');
+    const t = setTimeout(() => setBooting(false), 600);
+    return () => clearTimeout(t);
+  }, [booting]);
+  return [booting, () => setBooting(false)];
 }
 
 export default function ThemeApp() {
@@ -74,6 +93,8 @@ export default function ThemeApp() {
   const [burnTrack, setBurnTrack] = useState(null);
   const [aboutOpen, setAboutOpen] = useState(false);
   const [pickTrack, setPickTrack] = useState(null);
+  const [searchGlitch, setSearchGlitch] = useState(false);
+  const [degauss, setDegauss] = useState(false);
 
   const { search } = useSearch();
   const { mixes, burnMix, addToMix } = useLibrary();
@@ -81,6 +102,7 @@ export default function ThemeApp() {
   const [searchInput, setSearchInput] = useState('');
   const frameRef = useRef(null);
   useSplitter(frameRef);
+  const [booting, skipBoot] = useBootSequence();
 
   useEffect(() => { store.set('sp06_skin', skin); }, [skin]);
 
@@ -98,6 +120,7 @@ export default function ThemeApp() {
     if (!q) return;
     nav('search');
     search(q);
+    setSearchGlitch(true);
   }
 
   function openBurnDialog(track) { setBurnTrack(track); setBurnOpen(true); }
@@ -121,6 +144,9 @@ export default function ThemeApp() {
 
   const lib = statusBar.collectLibrary();
   const totalSec = lib.reduce((s, t) => s + (t.ms || 0), 0) / 1000;
+  const itemsLabel = lib.length + ' item' + (lib.length === 1 ? '' : 's');
+  const timeLabel = fmtTime(totalSec) + ' total';
+  const cacheLabel = 'cache: ' + cacheSizeKb() + 'kb';
 
   let ViewEl;
   if (view === 'home') ViewEl = <Home nav={nav} />;
@@ -140,32 +166,39 @@ export default function ThemeApp() {
 
   return (
     <DialogContext.Provider value={dialogsApi}>
-      <div className="theme-chrome" data-skin={skin}>
+      <div className={'theme-chrome' + (booting ? ' boot-play' : '')} data-skin={skin}
+        onClick={booting ? skipBoot : undefined}>
         <IconDefs />
+        {booting && <div className="boot-overlay" aria-hidden="true" />}
+        {degauss && <div className="degauss-overlay" aria-hidden="true" onAnimationEnd={() => setDegauss(false)} />}
 
-        <div className="titlebar">
-          <button className="nav-toggle" aria-label="Menu" onClick={() => { setConsoleOpen(false); setSidebarOpen((o) => !o); }}>&#9776;</button>
-          <div className="logo">SPOTIFY<span className="tm">&trade;</span><span className="ver">2006</span></div>
-          <div className="title-tag">your music. your player. no napster lawsuits.</div>
-          <button className="btn-row" style={{ marginLeft: 'auto' }}
-            onClick={() => setSkin((s) => (s === 'midnight' ? 'silver' : 'midnight'))}
-            title="Toggle Midnight Chrome / Daylight Silver">
-            {skin === 'midnight' ? '☀ SILVER' : '🌙 MIDNIGHT'}
-          </button>
+        <div className="boot-region-1">
+          <div className="titlebar">
+            <button className="nav-toggle" aria-label="Menu" onClick={() => { setConsoleOpen(false); setSidebarOpen((o) => !o); }}>&#9776;</button>
+            <div className="logo">SPOTIFY<span className="tm">&trade;</span><span className="ver">2006</span></div>
+            <div className="title-tag">your music. your player. no napster lawsuits.</div>
+            <button className="btn-row" style={{ marginLeft: 'auto' }}
+              onClick={() => { setSkin((s) => (s === 'midnight' ? 'silver' : 'midnight')); setDegauss(true); }}
+              title="Toggle Midnight Chrome / Daylight Silver">
+              {skin === 'midnight' ? '☀ SILVER' : '🌙 MIDNIGHT'}
+            </button>
+          </div>
+
+          <MenuBar nav={nav} onOpenConsole={() => { if (isMobile()) { setSidebarOpen(false); setConsoleOpen(true); } }} />
+
+          <div className="toolbar">
+            <button className="btn btn-chrome tool-home" title="Home" aria-label="Home" onClick={() => nav('home')}>&#8962;</button>
+            <form onSubmit={onSubmitSearch} autoComplete="off">
+              <input type="text" placeholder="artist, song or album..." spellCheck="false"
+                value={searchInput} onChange={(e) => setSearchInput(e.target.value)} id="searchInput"
+                className={searchGlitch ? 'lcd-glitch' : undefined}
+                onAnimationEnd={() => setSearchGlitch(false)} />
+              <button type="submit" className="btn btn-chrome">SEARCH &raquo;</button>
+            </form>
+          </div>
         </div>
 
-        <MenuBar nav={nav} onOpenConsole={() => { if (isMobile()) { setSidebarOpen(false); setConsoleOpen(true); } }} />
-
-        <div className="toolbar">
-          <button className="btn btn-chrome tool-home" title="Home" aria-label="Home" onClick={() => nav('home')}>&#8962;</button>
-          <form onSubmit={onSubmitSearch} autoComplete="off">
-            <input type="text" placeholder="artist, song or album..." spellCheck="false"
-              value={searchInput} onChange={(e) => setSearchInput(e.target.value)} id="searchInput" />
-            <button type="submit" className="btn btn-chrome">SEARCH &raquo;</button>
-          </form>
-        </div>
-
-        <div className="frame" ref={frameRef}>
+        <div className="frame boot-region-2" ref={frameRef}>
           <ExplorerTree view={view} onNav={nav} onClose={() => setSidebarOpen(false)} open={sidebarOpen} />
 
           <div className="splitter" data-side="l" title="drag to resize"></div>
@@ -177,14 +210,16 @@ export default function ThemeApp() {
           <DJConsole onClose={() => setConsoleOpen(false)} open={consoleOpen} />
         </div>
 
-        <PlayerBar />
+        <div className="boot-region-3">
+          <PlayerBar />
 
-        <div className="statusbar">
-          <span className="sb-cell sb-msg">{statusBar.message}</span>
-          <span className="sb-cell">{lib.length} item{lib.length === 1 ? '' : 's'}</span>
-          <span className="sb-cell">{fmtTime(totalSec)} total</span>
-          <span className="sb-cell">cache: {cacheSizeKb()}kb</span>
-          <span className="sb-grip" aria-hidden="true"></span>
+          <div className="statusbar">
+            <span className="sb-cell sb-msg">{statusBar.message}</span>
+            <span className="sb-cell"><OdoCell>{itemsLabel}</OdoCell></span>
+            <span className="sb-cell"><OdoCell>{timeLabel}</OdoCell></span>
+            <span className="sb-cell"><OdoCell>{cacheLabel}</OdoCell></span>
+            <span className="sb-grip" aria-hidden="true"></span>
+          </div>
         </div>
 
         {/* mobile-only vinyl toggle */}

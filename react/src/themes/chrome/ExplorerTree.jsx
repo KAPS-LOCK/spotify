@@ -46,8 +46,10 @@ export function ExplorerTree({ view, onNav, onClose, open }) {
           {count && <span className="tree-count">{count}</span>}
         </button>
         {n.children && (
-          <div hidden={!open}>
-            {n.children.map((c) => renderNode(c, depth + 1))}
+          <div className={'tree-children' + (open ? ' open' : '')}>
+            <div className="tree-children-inner">
+              {n.children.map((c) => renderNode(c, depth + 1))}
+            </div>
           </div>
         )}
       </div>

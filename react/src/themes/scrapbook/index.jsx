@@ -27,6 +27,10 @@ export default function ThemeApp() {
 
       <button className="mobile-toggle-sidebar" onClick={() => { setSidebarOpen((o) => !o); setQueueOpen(false); }}>MENU &#9776;</button>
       <button className="mobile-toggle-queue" onClick={() => { setQueueOpen((o) => !o); setSidebarOpen(false); }}>QUEUE &#9835;</button>
+      <div
+        className={'mobile-backdrop' + (sidebarOpen || queueOpen ? ' open' : '')}
+        onClick={() => { setSidebarOpen(false); setQueueOpen(false); }}
+      />
 
       <Sidebar view={view} onNav={nav} open={sidebarOpen} />
       <main className="main">
