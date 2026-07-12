@@ -69,7 +69,12 @@ export function TrackTable({ tracks, removable = false, onRemove }) {
             onClick={(e) => { if (!e.target.closest('button')) setSelected(i); }}
             onDoubleClick={(e) => { if (!e.target.closest('button')) play(sorted, i); }}>
             <td className="t-art"><img src={t.art} alt="" loading="lazy" /></td>
-            <td className="t-name">{t.name}</td>
+            <td className="t-name">
+              {current && current.id === t.id && (
+                <span className="mini-viz" aria-hidden="true"><i></i><i></i><i></i></span>
+              )}
+              {t.name}
+            </td>
             <td className="t-artist">{t.artist}</td>
             <td className="t-album">{t.album}</td>
             <td className="t-time">{fmtTime(t.ms / 1000)}</td>

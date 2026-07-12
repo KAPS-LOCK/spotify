@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useThemeTransition } from './ThemeTransition';
+import { audio } from '../core/store';
 import './landing.css';
 
 const VIBES = [
@@ -17,21 +18,30 @@ const SPARKLES = [
 
 function useStageScale() {
   const [scale, setScale] = useState(1);
+  const [mobile, setMobile] = useState(false);
   useEffect(() => {
     function fit() {
-      setScale(Math.min(window.innerWidth / 1440, window.innerHeight / 900));
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      const isMobile = w <= 700;
+      setMobile(isMobile);
+      setScale(isMobile ? 1 : Math.min(w / 1440, h / 900));
     }
     fit();
     window.addEventListener('resize', fit);
     return () => window.removeEventListener('resize', fit);
   }, []);
-  return scale;
+  return { scale, mobile };
 }
 
 export default function Landing() {
-  const scale = useStageScale();
+  const { scale, mobile } = useStageScale();
   const startTransition = useThemeTransition();
   const [locked, setLocked] = useState(false);
+
+  useEffect(() => {
+    if (audio) audio.pause();
+  }, []);
 
   function playVibe(vibe, e) {
     if (locked) return;
@@ -40,8 +50,8 @@ export default function Landing() {
   }
 
   return (
-    <div className="stage-wrap">
-      <div className="stage" style={{ transform: `scale(${scale})` }}>
+    <div className={'stage-wrap' + (mobile ? ' mobile' : '')}>
+      <div className="stage" style={mobile ? undefined : { transform: `scale(${scale})` }}>
         <div className="stage-floor" aria-hidden="true" />
 
         <div className="stage-beam stage-beam-l" aria-hidden="true" />

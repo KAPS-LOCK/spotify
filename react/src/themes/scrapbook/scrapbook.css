@@ -24,9 +24,9 @@
   grid-template-columns: 200px 1fr 260px;
   grid-template-rows: auto auto 1fr auto;
   grid-template-areas:
-    "hdr     hdr  hdr"
-    "sidebar ipod queue"
-    "sidebar main queue"
+    "hdr     hdr    hdr"
+    "ipod    ipod   ipod"
+    "sidebar main   queue"
     "sidebar status queue";
   background: var(--cream);
   background-image: linear-gradient(rgba(0,0,0,0.035) 1px, transparent 1px);
@@ -150,17 +150,19 @@
 .theme-scrapbook .ipod-bar {
   grid-area: ipod;
   display: flex; justify-content: center; align-items: center;
-  padding: 8px 16px;
-  background: #000;
+  padding: 14px 16px;
+  background: var(--cream);
+  background-image: linear-gradient(rgba(0,0,0,0.035) 1px, transparent 1px);
+  background-size: 100% 20px;
   border-bottom: 3px dashed var(--pink);
   z-index: 10;
 }
 .theme-scrapbook .ipod {
   display: flex; align-items: stretch;
-  background: linear-gradient(180deg, #e8e8e8, #c8c8c8 30%, #b0b0b0 70%, #a0a0a0);
-  border-radius: 18px; border: 3px solid #888;
-  box-shadow: 4px 4px 0 var(--pink), 0 0 20px rgba(57,255,20,0.15);
-  max-width: 1400px; width: 100%; height: 110px;
+  background: linear-gradient(180deg, #f2f2f2, #d2d2d2 30%, #b6b6b6 70%, #a4a4a4);
+  border-radius: 18px; border: 3px solid #000;
+  box-shadow: 5px 5px 0 var(--pink);
+  max-width: 720px; width: 100%; height: 100px;
   transform: rotate(-0.5deg);
 }
 .theme-scrapbook .ipod-screen {
@@ -559,15 +561,17 @@
 }
 
 /* ── MOBILE ── */
+.theme-scrapbook .mobile-backdrop { display: none; }
+
 .theme-scrapbook .mobile-toggle-sidebar,
 .theme-scrapbook .mobile-toggle-queue {
-  display: none; position: fixed; z-index: 100;
+  display: none; position: fixed; z-index: 100; bottom: 32px;
   background: var(--pink); color: #fff; border: 2px solid #000;
   font-family: 'Permanent Marker', cursive; font-size: 11px;
-  padding: 4px 10px; box-shadow: 3px 3px 0 var(--slime);
+  padding: 6px 10px; box-shadow: 3px 3px 0 var(--slime);
 }
-.theme-scrapbook .mobile-toggle-sidebar { top: 130px; left: 8px; }
-.theme-scrapbook .mobile-toggle-queue { top: 130px; right: 8px; }
+.theme-scrapbook .mobile-toggle-sidebar { left: 8px; }
+.theme-scrapbook .mobile-toggle-queue { right: 8px; }
 
 @media (max-width: 900px) {
   .theme-scrapbook {
@@ -587,8 +591,22 @@
   .theme-scrapbook .sidebar.open { transform: translateX(0); }
   .theme-scrapbook .queue-panel.open { transform: translateX(0); }
   .theme-scrapbook .mobile-toggle-sidebar, .theme-scrapbook .mobile-toggle-queue { display: block; }
-  .theme-scrapbook .ipod { max-width: 100%; height: 90px; }
-  .theme-scrapbook .ipod-wheel { width: 90px; min-width: 90px; }
+  .theme-scrapbook .mobile-backdrop.open {
+    display: block; position: fixed; inset: 0; z-index: 40;
+    background: rgba(0, 0, 0, 0.45);
+  }
+  /* clear space so content isn't hidden behind the fixed MENU/QUEUE buttons */
+  .theme-scrapbook .main { padding: 10px 12px 68px; }
+  .theme-scrapbook .ipod-bar { padding: 6px 10px; }
+  .theme-scrapbook .ipod {
+    max-width: 100%; height: 88px;
+    transform: none;
+    box-shadow: 4px 4px 0 var(--pink);
+  }
+  .theme-scrapbook .wheel-btn { white-space: nowrap; }
+  .theme-scrapbook .mobile-toggle-sidebar,
+  .theme-scrapbook .mobile-toggle-queue { white-space: nowrap; font-size: 12px; padding: 7px 12px; }
+  .theme-scrapbook .ipod-wheel { width: 84px; min-width: 84px; height: 84px; }
   .theme-scrapbook .wheel-center { width: 32px; height: 32px; font-size: 14px; }
   .theme-scrapbook .wheel-btn { font-size: 7px; }
   .theme-scrapbook .pixel-bounce .letter { font-size: 10px; }
@@ -596,18 +614,24 @@
   .theme-scrapbook .typing-wrap { font-size: 10px; min-width: 140px; }
 }
 @media (max-width: 500px) {
-  .theme-scrapbook .ipod { height: 80px; border-radius: 12px; }
-  .theme-scrapbook .ipod-wheel { width: 70px; min-width: 70px; }
+  .theme-scrapbook .ipod { height: 78px; border-radius: 12px; }
+  .theme-scrapbook .ipod-wheel { width: 68px; min-width: 68px; height: 68px; margin: 0 6px 0 4px; }
   .theme-scrapbook .wheel-center { width: 26px; height: 26px; font-size: 12px; }
+  .theme-scrapbook .wheel-btn { font-size: 6px; padding: 1px 3px; }
   .theme-scrapbook .ipod-screen { margin: 4px 3px 4px 4px; padding: 3px 5px; }
   .theme-scrapbook .ipod-now-playing { font-size: 9px; }
   .theme-scrapbook .ipod-now-playing .artist { font-size: 8px; }
+  .theme-scrapbook .ipod-viz { height: 8px; }
   .theme-scrapbook .sidebar, .theme-scrapbook .queue-panel { width: 240px; }
   .theme-scrapbook .hdr { padding: 4px 8px; min-height: 30px; }
   .theme-scrapbook .pixel-bounce .letter { font-size: 8px; }
   .theme-scrapbook .pixel-bounce .ver { font-size: 5px; }
   .theme-scrapbook .typing-wrap { font-size: 8px; min-width: 100px; }
   .theme-scrapbook .typing-cursor { height: 10px; }
+  .theme-scrapbook .cover-grid,
+  .theme-scrapbook .search-results {
+    grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  }
 }
 
 .theme-scrapbook ::-webkit-scrollbar { width: 8px; }
@@ -768,6 +792,43 @@
 
 @keyframes sb-blink {
   0%, 88% { opacity: 1; } 94% { opacity: 0.3; } 100% { opacity: 1; }
+}
+
+/* ── LOADING SCREEN: MOBILE ── */
+@media (max-width: 560px) {
+  .theme-scrapbook .loading-overlay { gap: 16px; padding: 20px 12px; }
+  .theme-scrapbook .loading-header {
+    gap: 10px;
+    max-width: 100%;
+    padding: 0;
+  }
+  .theme-scrapbook .loading-warning {
+    font-size: 9px;
+    letter-spacing: 0.3px;
+    gap: 6px;
+    padding: 5px 8px;
+  }
+  .theme-scrapbook .loading-wordmark { font-size: 34px; }
+  .theme-scrapbook .loading-version { font-size: 10px; }
+  .theme-scrapbook .loading-tagline { font-size: 10px; text-align: center; }
+
+  .theme-scrapbook .loading-window {
+    max-width: 100%;
+    transform: rotate(0deg);
+    box-shadow: 5px 5px 0px var(--pink);
+  }
+  .theme-scrapbook .window-titlebar { padding: 6px 10px; font-size: 0.72rem; }
+  .theme-scrapbook .window-body { padding: 16px; }
+  .theme-scrapbook .progress-container { height: 24px; margin-bottom: 14px; }
+  .theme-scrapbook .status-box { padding: 12px; min-height: 74px; }
+  .theme-scrapbook .static-status { font-size: 0.68rem; }
+  .theme-scrapbook .dynamic-log { font-size: 0.9rem; }
+  .theme-scrapbook .window-footer { font-size: 0.62rem; }
+}
+
+@media (max-width: 380px) {
+  .theme-scrapbook .loading-wordmark { font-size: 28px; }
+  .theme-scrapbook .loading-warning { font-size: 8px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

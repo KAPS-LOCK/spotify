@@ -3,20 +3,23 @@ import { useEffect, useRef, useState } from 'react';
 export function BurnDialog({ open, onConfirm, onCancel }) {
   const inputRef = useRef(null);
   const [name, setName] = useState('');
+  const [shake, setShake] = useState(false);
 
   useEffect(() => {
-    if (open) { setName(''); setTimeout(() => inputRef.current?.focus(), 0); }
+    if (open) { setName(''); setShake(false); setTimeout(() => inputRef.current?.focus(), 0); }
   }, [open]);
 
   if (!open) return null;
 
   function confirm() {
-    onConfirm(name.trim());
+    const trimmed = name.trim();
+    if (!trimmed) { setShake(true); inputRef.current?.focus(); return; }
+    onConfirm(trimmed);
   }
 
   return (
     <div className="dialog-backdrop">
-      <div className="dialog">
+      <div className={'dialog' + (shake ? ' shake' : '')} onAnimationEnd={() => setShake(false)}>
         <div className="dialog-title">Burn a new Mix CD</div>
         <div className="dialog-body">
           <label htmlFor="mixName">Name your CD (write it in sharpie):</label>
