@@ -68,3 +68,13 @@ npm run dev
 ```
 
 The AI DJ needs a Groq key — add `VITE_GROQ_API_KEY=your_key` to `react/.env`. Everything else works without it.
+
+---
+
+## Contributors
+
+| | Theme |
+| --- | --- |
+| **[@Sujatx](https://github.com/Sujatx)** | Chrome & Acid, shared engine & landing |
+| **[@coder404-hub](https://github.com/coder404-hub)** | Frutiger Aero |
+| **[@cybersighzero](https://github.com/cybersighzero)** | MySpace Scrapbook |
